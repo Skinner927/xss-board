@@ -1,18 +1,48 @@
-// author: takeshix@adversec.com
 <?php
-if(!isset($_COOKIE["PHPSESSID"]))
-    setcookie('PHPSESSID',md5(uniqid(rand(), true)));
+// Original author: takeshix@adversec.com
+// Modified by skinner927@gmail.com
 
-if($_COOKIE["PHPSESSID"]=='mag1c_c00k1e')
-    echo "the flag is: put_flag_here";
+define('WINNINGFLAG', 'A ROLLING PROGRAM SMASHED THE GENIUS');
+define('BOTCOOKIE', 'mag1c_c00k1e');
+define('COMMENTDIR', './comments/'); // must have trailing slash
 
-if($_SERVER['REQUEST_METHOD']=='POST' && isset($_POST['comment']) && !empty($_POST['comment']) && isset($_POST['user']) && !empty($_POST['user'])){
-    $file_name = substr(md5(uniqid(rand(), true)),10);
-    $fh = fopen("./comments/$file_name", 'w+');
-    fwrite($fh, $_POST['user']."\n".$_POST['comment']);
+// Constants so we can't screw up as easy
+define('NAME', 'name');
+define('BOTID', 'botid');
+define('COMMENT', 'comment');
+define('USERNAME', 'username');
+
+function sanitizeAlphaNum($session){
+  return preg_replace('/[^A-Za-z0-9]/', '', $session);
+}
+
+// Bot passes us what user we want to look at
+$session = NULL;
+if($_COOKIE[BOTID] === BOTCOOKIE){
+  $session = sanitizeAlphaNum($_COOKIE[NAME]);
+} else if(isset($_REQUEST[NAME]) && !empty($_REQUEST[NAME])) {
+  // This is a regular user, extract the name param
+  $session = sanitizeAlphaNum($_REQUEST[NAME]);
+}
+
+// Redirect if no named session
+if($session === NULL) {
+  // Generate a new session for this fool
+  header('Location: '.$_SERVER['REQUEST_URI'].'?'.NAME.'='.md5(uniqid(rand(), true)));
+  die('redirect new name');
+}
+
+// prefix for all file names from this session (so we only see this session's filenames)
+$filePrefix = $session.'-';
+
+// Handle POST requests
+if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[COMMENT]) 
+  && !empty($_POST[COMMENT]) && isset($_POST[USERNAME]) && !empty($_POST[USERNAME])){
+    $file_name = $filePrefix . time() . '-'. substr(md5(uniqid(rand(), true)),10);
+    $fh = fopen(COMMENTDIR . $file_name, 'w+');
+    fwrite($fh, trim($_POST[USERNAME])."\n".$_POST[COMMENT]);
     fclose($fh);
 }
-$dh = opendir('./comments');
 ?>
 <!DOCTYPE html>
 <html>
@@ -21,6 +51,11 @@ $dh = opendir('./comments');
     <title>Picture of the week</title>
 </head>
 <body>
+    <?php
+      if($_COOKIE["PHPSESSID"] === BOTCOOKIE){
+        echo '<span id="flag">the flag is: '.WINNINGFLAG.'</span>';
+      }
+    ?>
     <form method="post">
         <table style="width: 1000px;table-layout: fixed">
             <tr style="vertical-align: top">
@@ -35,17 +70,18 @@ $dh = opendir('./comments');
             <tr>
                 <td colspan="2">
                     <labe for="comment">Username:</label>
-                    <input type="text" name="user" style="width: 100%"/>
+                    <input type="text" name="<?= USERNAME ?>" style="width: 100%"/>
                 </td>
             </tr>
             <tr>
                 <td colspan="2">
                     <labe for="comment">Comment:</label>
-                    <input type="text" name="comment" style="width: 100%"/>
+                    <textarea name="<?= COMMENT ?>" style="width: 100%"></textarea>
                 </td>
             </tr>
             <tr>
                 <td colspan="2" style="text-align: center">
+                    <input type="hidden" name="<?= NAME ?>" value="<?= $session ?>" />
                     <input type="submit" value="Post it!" />
                 </td>   
             </tr>
@@ -53,14 +89,16 @@ $dh = opendir('./comments');
                 <td colspan="2"><h3>Comments:</h3></td>
             </tr>
                 <?php
+                    $dh = opendir(COMMENTDIR);
                     while($file = readdir($dh)){
-                        if($file != "." && $file != "..") {
-                            $content = file("./comments/$file");
+                        if($file != "." && $file != ".." && strpos($file, $filePrefix) === 0) {
+                            $content = file(COMMENTDIR . $file);
+                            $body = implode(array_slice($content, 1));
                             echo "<tr style='border: 1px dotted black'>\n";
                             echo "\t<td colspan='2' style='word-wrap: break-word;padding: 5px;'>Submitted by: <b>$content[0]</b></td>\n";
                             echo "<tr style='border: 1px dotted black'>\n";
                             echo "</tr>\n";
-                            echo "\t<td colspan='2' style='border: 1px dotted black;word-wrap: break-word;padding: 5px;'>$content[1]</td>\n";
+                            echo "\t<td colspan='2' style='border: 1px dotted black;word-wrap: break-word;padding: 5px;'>$body</td>\n";
                             echo "</tr>\n";
                         }
                     }
