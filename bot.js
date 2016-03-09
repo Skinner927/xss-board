@@ -5,6 +5,8 @@
 (function() {
   'use strict';
 
+  const HOST = 'http://localhost:8081/';
+
   const Zombie = require('zombie');
   const fs = require('fs');
   const chalk = require('chalk');
@@ -29,6 +31,9 @@
   });
 
   bot.on('redirect', function(request){
+    if(request.url.indexOf(HOST) === 0){
+      return;
+    }
     console.log(chalk.bgBlue('Redirect'));
     console.log(request);
   });
@@ -42,13 +47,15 @@
   // Get all files from the comments directory
   fs.readdirSync('./comments')
     // Pick out just unique user names
-    .reduce(function(obj, filename, i, files) {
+    .reduce(function(users, filename, i, files) {
 
-      let user = filename.split('-')[0];
+      if(filename[0] !== '.'){
+        let user = filename.split('-')[0];
 
-      obj[user] = true;
+        users[user] = true;
+      }
 
-      return files.length - 1 === i ? Object.keys(obj) : obj;
+      return files.length - 1 === i ? Object.keys(users) : users;
     }, {})
     // Loop over each user and visit their page
     .forEach(function(user) {
@@ -67,7 +74,7 @@
       });
 
       //bot.debug();
-      bot.visit("http://localhost:8081/", function() {
+      bot.visit(HOST, function() {
         bot.fill("username", "admin").fill("comment", "hilarious!").pressButton("Post it!", function() {})
       });
     });

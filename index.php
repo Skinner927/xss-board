@@ -47,6 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[COMMENT])
   $fh = fopen(COMMENTDIR . $file_name, 'w+');
   fwrite($fh, trim($_POST[USERNAME]) . "\n" . $_POST[COMMENT]);
   fclose($fh);
+  header('Location: ' . $_SERVER['REQUEST_URI']);
+  die('redirecting');
 }
 ?>
 <!DOCTYPE html>
