@@ -1,0 +1,5 @@
+Pop alert "hello" on the bot's page
+
+Get contents of #flag
+
+Make bot visit google.com
