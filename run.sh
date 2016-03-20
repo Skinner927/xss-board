@@ -11,7 +11,7 @@ while true; do
     echo 'Running bot'
     node bot.js
     echo 'waiting 1 minute'
-    sleep 5
+    sleep 60 #seconds
 done
 
 kill $PHPID
