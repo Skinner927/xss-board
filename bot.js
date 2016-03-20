@@ -15,6 +15,13 @@
 
   let bot = new Zombie();
 
+  var enableLogging = true;
+  function log(){
+    if(enableLogging){
+      console.log.apply(this, arguments);
+    }
+  }
+  
 
   // Hookup our listeners
   bot.on('error', function(error){
@@ -22,25 +29,25 @@
   });
 
   bot.on('alert', function(message){
-    console.log(chalk.bgMagenta('ALERT -- ALERT -- ALERT'));
-    console.log(chalk.magenta(message));
+    log(chalk.bgMagenta('ALERT -- ALERT -- ALERT'));
+    log(chalk.magenta(message));
   });
 
   bot.on('submit', function(){
-    console.log(chalk.yellow('Submitting Form'));
+    log(chalk.yellow('Submitting Form'));
   });
 
   bot.on('redirect', function(request){
     if(request.url.indexOf(HOST) === 0){
       return;
     }
-    console.log(chalk.bgBlue('Redirect'));
-    console.log(request);
+    log(chalk.bgBlue('Redirect'));
+    log(request);
   });
 
   bot.on('link', function(url){
-    console.log(chalk.bgBlue('Link'));
-    console.log(url);
+    log(chalk.bgBlue('Link'));
+    log(url);
   });
 
 
@@ -74,7 +81,10 @@
       });
 
       //bot.debug();
+      enableLogging = true;
       bot.visit(HOST, function() {
+        // Don't log anything after we post because it'll probably be the exact same stuff
+        enableLogging = false;
         bot.fill("username", "admin").fill("comment", "hilarious!").pressButton("Post it!", function() {})
       });
     });

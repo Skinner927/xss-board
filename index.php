@@ -92,8 +92,6 @@ if ($_COOKIE["PHPSESSID"] === BOTCOOKIE) {
     </tr>
     <tr>
       <td colspan="2" style="text-align: center">
-        <!-- I promise you this has nothing to do with how to solve -->
-        <input type="hidden" name="<?= NAME ?>" value="<?= $session ?>"/>
         <input type="submit" value="Post it!"/>
       </td>
     </tr>
@@ -102,17 +100,22 @@ if ($_COOKIE["PHPSESSID"] === BOTCOOKIE) {
     </tr>
     <?php
     $dh = opendir(COMMENTDIR);
+    $files = [];
     while ($file = readdir($dh)) {
-      if ($file != "." && $file != ".." && strpos($file, $filePrefix) === 0) {
-        $content = file(COMMENTDIR . $file);
-        $body = implode(array_slice($content, 1));
-        echo "<tr style='border: 1px dotted black'>\n";
-        echo "\t<td colspan='2' style='word-wrap: break-word;padding: 5px;'>Submitted by: <b>$content[0]</b></td>\n";
-        echo "<tr style='border: 1px dotted black'>\n";
-        echo "</tr>\n";
-        echo "\t<td colspan='2' style='border: 1px dotted black;word-wrap: break-word;padding: 5px;'>$body</td>\n";
-        echo "</tr>\n";
+      if (strpos($file, '.') !== 0 && strpos($file, $filePrefix) === 0) {
+        $files[] = $file;
       }
+    }
+    sort($files);
+    foreach($files as $file){
+      $content = file(COMMENTDIR . $file);
+      $body = implode(array_slice($content, 1));
+      echo "<tr style='border: 1px dotted black'>\n";
+      echo "\t<td colspan='2' style='word-wrap: break-word;padding: 5px;'>Submitted by: <b>$content[0]</b></td>\n";
+      echo "<tr style='border: 1px dotted black'>\n";
+      echo "</tr>\n";
+      echo "\t<td colspan='2' style='border: 1px dotted black;word-wrap: break-word;padding: 5px;'>$body</td>\n";
+      echo "</tr>\n";
     }
     ?>
   </table>
