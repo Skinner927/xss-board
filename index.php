@@ -57,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[COMMENT])
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <title>Picture of the week</title>
   <script src="node_modules/jquery/dist/jquery.min.js"></script>
+  <script>$.support.cors = true;</script>
 </head>
 <body>
 <?php
